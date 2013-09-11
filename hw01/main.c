@@ -10,12 +10,14 @@
 #define PRINT_POLYNOMIAL_EPS (1.e-8)
 #define PRINT_POLYNOMIAL_PRECISION (2)
 
-#define NUMERIC_EPS (1.e-8)
-#define PRINT_NUMERIC_PRECISION (9)
-#define NUM_MONTE_CARLO_POINTS (200)
-#define MAX_STARTING_POINT_DEVIATION (0.1)
+#define NUMERIC_EPS (1.e-9)
+#define PRINT_NUMERIC_PRECISION (12)
 
+#define NUM_MONTE_CARLO_POINTS (200)
+
+#ifndef max
 #define max(a, b) ((a) < (b) ? (b) : (a))
+#endif
 
 typedef struct
 {
@@ -273,9 +275,14 @@ double newtonRoot(NewtonFunction func, void *funcArg, NewtonFunction deriv, void
 {
     double root = startingPoint;
     double currentValue = 0.0;
+    int numOfStep = 0;
     while (fabs(currentValue = func(funcArg, root)) >= NUMERIC_EPS) {
+        printf("step: %-5dx: %-20.*lff(x): %-20.*lf\n", ++numOfStep, PRINT_NUMERIC_PRECISION, root
+                                                      , PRINT_NUMERIC_PRECISION, currentValue);
         root -= currentValue / deriv(derivArg, root);
     }
+    printf("step: %-5dx: %-20.*lff(x): %-20.*lf\n", ++numOfStep, PRINT_NUMERIC_PRECISION, root
+                                                  , PRINT_NUMERIC_PRECISION, func(funcArg, root));
     return root;
 }
 
@@ -283,6 +290,9 @@ void improveAccuracyOfRoots(NewtonFunction func, void *funcArg
                           , NewtonFunction deriv, void *derivArg, Vector *startingPoints)
 {
     for (size_t i = 0; i < startingPoints->size; ++i) {
+        if (i > 0) {
+            putchar('\n');
+        }
         startingPoints->values[i] = newtonRoot(func, funcArg, deriv, derivArg, startingPoints->values[i]);
     }
 }
@@ -305,14 +315,14 @@ int polynomialMain()
     printf("Lower bound of negative roots: %lf\n", negativeRootsLowerBound);
     printf("Upper bound of positive roots: %lf\n", positiveRootsUpperBound);
 
-    Vector startingPoints = findStartingPoints(&p, negativeRootsLowerBound, positiveRootsUpperBound);
-    printf("Starting points: ");
-    printVector(&startingPoints, stdout);
-    putchar('\n');
-
     Polynomial dp = getDerivative(&p);
     printf("Derivative: ");
     printPolynomial(&dp, stdout);
+    putchar('\n');
+
+    Vector startingPoints = findStartingPoints(&p, negativeRootsLowerBound, positiveRootsUpperBound);
+    printf("Starting points: ");
+    printVector(&startingPoints, stdout);
     putchar('\n');
 
     improveAccuracyOfRoots(unsafeCalcValue, &p, unsafeCalcValue, &dp, &startingPoints);
@@ -360,8 +370,8 @@ int complexFunctionMain(int argc, char **argv)
     printf("Your starting point: %lf\n", startingPoint);
 
     double const root = newtonRoot(complexFunction, NULL, derivOfComplexFunction, NULL, startingPoint);
-    printf("Root: %.*lf\n", PRINT_NUMERIC_PRECISION, root);
-    printf("Value: %.*lf\n", PRINT_NUMERIC_PRECISION, complexFunction(NULL, root));
+    printf("Roots: %.*lf\n", PRINT_NUMERIC_PRECISION, root);
+    printf("Values: %.*lf\n", PRINT_NUMERIC_PRECISION, complexFunction(NULL, root));
 
     return 0;
 }
