@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -28,7 +29,11 @@ void initVector(Vector *vector, size_t capacity)
 {
     vector->capacity = capacity;
     vector->size = 0;
-    vector->values = (double *)malloc(sizeof(double) * capacity);
+    if (capacity > 0) {
+        vector->values = (double *)malloc(sizeof(double) * capacity);
+    } else {
+        vector->values = NULL;
+    }
 }
 
 void disposeVector(Vector *vector)
@@ -157,7 +162,7 @@ void makePositiveLeadingCoeff(Polynomial *polynomial)
 double rootsUpperBound(Polynomial const *polynomial)
 {
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
-    assert(polynomial->coeffs[polynomial->deg] > 0.0);
+    assert(polynomial->coeffs != NULL && polynomial->coeffs[polynomial->deg] > 0.0);
     double maxAbsOfNegativeCoeff = 0.0;
     for (int i = 0; i <= polynomial->deg; ++i) {
         if (polynomial->coeffs[i] < 0.0) {
@@ -197,6 +202,7 @@ void createReflected(Polynomial const *src, Polynomial *dst)
 double rootsLowerBound(Polynomial const *polynomial)
 {
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
+    assert(polynomial->coeffs != NULL);
     assert(polynomial->coeffs[polynomial->deg] > 0.0);
     Polynomial reflected;
     initPolynomial(&reflected, polynomial->deg);
@@ -293,8 +299,8 @@ int polynomialMain()
     putchar('\n');
 
     makePositiveLeadingCoeff(&p);
-    double negativeRootsLowerBound = rootsLowerBound(&p);
-    double positiveRootsUpperBound = rootsUpperBound(&p);
+    double const negativeRootsLowerBound = rootsLowerBound(&p);
+    double const positiveRootsUpperBound = rootsUpperBound(&p);
     printf("Lower bound of negative roots: %lf\n", negativeRootsLowerBound);
     printf("Upper bound of positive roots: %lf\n", positiveRootsUpperBound);
 
@@ -359,10 +365,107 @@ int complexFunctionMain(int argc, char **argv)
     return 0;
 }
 
+int isSmallDegree(Polynomial const *polynomial)
+{
+    assert(polynomial->deg >= 0);
+    return polynomial->deg < 3;
+}
+
+Vector smallDegreeSolve(Polynomial *const polynomial)
+{
+    assert(0 <= polynomial->deg && polynomial->deg < 3);
+    assert(polynomial->coeffs != NULL && polynomial->coeffs[polynomial->deg] > 0.0);
+    Vector roots;
+    if (polynomial->deg == 0) {
+        initVector(&roots, 0);
+        return roots;
+    }
+    if (polynomial->deg == 1) {
+        initVector(&roots, 1);
+        append(&roots, -polynomial->coeffs[0] / polynomial->coeffs[1]);
+        return roots;
+    }
+    double const c = polynomial->coeffs[0];
+    double const b = polynomial->coeffs[1];
+    double const a = polynomial->coeffs[2];
+    double const discriminant = b*b - 4*a*c;
+    if (discriminant < -NUMERIC_EPS/2) {
+        initVector(&roots, 0);
+        return roots;
+    }
+    double const firstPart = -0.5 * b / a;
+    if (discriminant >= NUMERIC_EPS/2) {
+        double const secondPart = 0.5 * sqrt(discriminant) / a;
+        initVector(&roots, 2);
+        append(&roots, firstPart - secondPart);
+        append(&roots, firstPart + secondPart);
+        return roots;
+    }
+    initVector(&roots, 1);
+    append(&roots, firstPart);
+    return roots;
+}
+
+Vector recursiveSolve(Polynomial *const polynomial)
+{
+    assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
+    assert(polynomial->coeffs != NULL);
+    assert(polynomial->coeffs[polynomial->deg] > 0.0);
+
+    if (isSmallDegree(polynomial)) {
+        return smallDegreeSolve(polynomial);
+    }
+    Polynomial derivative = getDerivative(polynomial);
+    Vector rootsOfDeriv = recursiveSolve(&derivative);
+    Vector roots;
+    initVector(&roots, rootsOfDeriv.size + 1);
+
+    double const upperBound = rootsUpperBound(polynomial);
+    double prevPoint = rootsLowerBound(polynomial);
+    double prevValue = calcValue(polynomial, prevPoint);
+    for (int i = 0; i < rootsOfDeriv.size; ++i) {
+        double const currentValue = calcValue(polynomial, rootsOfDeriv.values[i]);
+        if (prevValue * currentValue <= 0.0) {
+            append(&roots, 0.5 * (rootsOfDeriv.values[i] + prevPoint));
+        }
+        prevPoint = rootsOfDeriv.values[i];
+        prevValue = currentValue;
+    }
+    if (prevValue * calcValue(polynomial, upperBound) <= 0.0) {
+        append(&roots, 0.5 * (rootsOfDeriv.values[rootsOfDeriv.size - 1] + upperBound));
+    }
+
+    improveAccuracyOfRoots(unsafeCalcValue, polynomial, unsafeCalcValue, &derivative, &roots);
+
+    disposeVector(&rootsOfDeriv);
+    disposePolynomial(&derivative);
+    return roots;
+}
+
+int recursiveMain()
+{
+    Polynomial p = getPolynomialFromUser();
+    Vector roots = recursiveSolve(&p);
+
+    printf("Your polynomial: ");
+    printPolynomial(&p, stdout);
+    printf("\nRoots: ");
+    printVector(&roots, stdout);
+    putchar('\n');
+
+    disposeVector(&roots);
+    disposePolynomial(&p);
+
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     if (argc == 1) {
         return polynomialMain();
+    }
+    if (strcmp(argv[1], "-r") == 0) {
+        return recursiveMain();
     }
     return complexFunctionMain(argc, argv);
 }
