@@ -279,7 +279,8 @@ double newtonRoot(NewtonFunction func, void *funcArg, NewtonFunction deriv, void
     return root;
 }
 
-void improveAccuracyOfRoots(NewtonFunction func, void *funcArg, NewtonFunction deriv, void *derivArg, Vector *startingPoints)
+void improveAccuracyOfRoots(NewtonFunction func, void *funcArg
+                          , NewtonFunction deriv, void *derivArg, Vector *startingPoints)
 {
     for (size_t i = 0; i < startingPoints->size; ++i) {
         startingPoints->values[i] = newtonRoot(func, funcArg, deriv, derivArg, startingPoints->values[i]);
