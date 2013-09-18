@@ -9,7 +9,7 @@ typedef double (*Function2D)(void const *additionalArg, double x, double y);
 double const eps = 1.e-9;
 double const startPointDistance = 0.1;
 
-inline double max(double x, double y)
+double max(double x, double y)
 {
     return x < y ? y : x;
 }
@@ -91,7 +91,7 @@ typedef struct
 }
 Rectangle;
 
-inline double square(double x)
+double square(double x)
 {
     return x*x;
 }
