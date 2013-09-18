@@ -184,7 +184,8 @@ Point2D newton2D(Function2D f, Function2D f_x, Function2D f_y
         double const gx = g_x(parameters, x, y);
         double const gy = g_y(parameters, x, y);
         double const jacobian = fx*gy - fy*gx;
-        printf("\nstep:\t%d | x: %13.10lf | y: %13.10lf | f(x, y): %13.10lf | g(x, y): %13.10lf", ++stepCounter, x, y, fv, gv);
+        printf("\nstep:\t%d | x: %13.10lf | y: %13.10lf | f(x, y): %13.10lf | g(x, y): %13.10lf"
+             , ++stepCounter, x, y, fv, gv);
 
         x -= (fv*gy - fy*gv) / jacobian;
         y -= (fx*gv - fv*gx) / jacobian;
