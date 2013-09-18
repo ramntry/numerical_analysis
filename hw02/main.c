@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
@@ -27,9 +28,60 @@ typedef struct
 }
 Point2D;
 
+typedef struct
+{
+    size_t capacity;
+    size_t size;
+    Point2D *values;
+}
+Vector;
+
 void printPoint(Point2D point)
 {
     printf("(%.10lf, %.10lf)", point.x, point.y);
+}
+
+void initVector(Vector *vector, size_t capacity)
+{
+    vector->capacity = capacity;
+    vector->size = 0;
+    if (capacity > 0) {
+        vector->values = (Point2D *)malloc(sizeof(Point2D) * capacity);
+    } else {
+        vector->values = NULL;
+    }
+}
+
+void disposeVector(Vector *vector)
+{
+    free(vector->values);
+    vector->values = NULL;
+    vector->size = 0;
+    vector->capacity = 0;
+}
+
+void appendUnique(Vector *vector, Point2D value)
+{
+    assert(vector->size < vector->capacity);
+    for (size_t i = 0; i < vector->size; ++i) {
+        if (fabs(vector->values[i].x - value.x) < 2.0*eps && fabs(vector->values[i].y - value.y) < 2.0*eps) {
+            return;
+        }
+    }
+    vector->values[vector->size++] = value;
+}
+
+void printVector(Vector const *vector)
+{
+    printf("[");
+    if (vector->size != 0) {
+        printPoint(vector->values[0]);
+    }
+    for (size_t i = 1; i < vector->size; ++i) {
+        printf(", ");
+        printPoint(vector->values[i]);
+    }
+    printf("]");
 }
 
 typedef struct
@@ -83,6 +135,8 @@ Point2D findOneStartPoint(Function2D f, Function2D g, Parameters const *paramete
                         , Rectangle *where, unsigned granularity, double targetDistance)
 {
     assert(granularity > 0);
+    putchar('.');
+
     double const stepX = (where->rightTop.x - where->leftBottom.x) / (granularity + 1);
     double const stepY = (where->rightTop.y - where->leftBottom.y) / (granularity + 1);
     Point2D currentPoint = { where->leftBottom.x, where->leftBottom.y };
@@ -115,7 +169,7 @@ Point2D newton2D(Function2D f, Function2D f_x, Function2D f_y
                , Function2D g, Function2D g_x, Function2D g_y
                , Parameters const *parameters, Point2D const *startPoint, double eps)
 {
-    printf("a = %lf, k = %lf, start point = ", parameters->a, parameters->k);
+    printf(") a = %lf, k = %lf, start point = ", parameters->a, parameters->k);
     printPoint(*startPoint);
 
     double x = startPoint->x;
@@ -141,6 +195,50 @@ Point2D newton2D(Function2D f, Function2D f_x, Function2D f_y
     return result;
 }
 
+int mainFindAllRoots(int argc, char **argv)
+{
+    assert(argc > 2);
+    Parameters parameters;
+    sscanf(argv[1], "%lf", &parameters.a);
+    sscanf(argv[2], "%lf", &parameters.k);
+
+    int const granularity = 100;
+    double const maxBound = 20.0;
+    size_t const maxRoots = 1000;
+
+    double bound = 0.5;
+    Vector roots;
+    initVector(&roots, maxRoots);
+    while (bound < maxBound) {
+        printf("\n\nbound = %lf\n\n", bound);
+        double const step = bound / granularity;
+        Point2D currentPoint = { -bound, -bound };
+        while (currentPoint.y <= bound) {
+            currentPoint.y += step;
+            while (currentPoint.x <= bound) {
+                currentPoint.x += step;
+                if (fabs(currentPoint.x) < 0.5 * bound && fabs(currentPoint.y) < 0.5 * bound) {
+                    continue;
+                }
+                if (max(fabs(firstFunction(&parameters, currentPoint.x, currentPoint.y))
+                      , fabs(secondFunction(&parameters, currentPoint.x, currentPoint.y))) < startPointDistance)
+                {
+                    appendUnique(&roots
+                        , newton2D(firstFunction, first_x, first_y, secondFunction, second_x, second_y
+                                 , &parameters, &currentPoint, eps));
+                }
+            }
+            currentPoint.x = -bound;
+        }
+        bound *= 2.0;
+    }
+    printf("Roots: ");
+    printVector(&roots);
+    printf("\n\n");
+    disposeVector(&roots);
+    return 0;
+}
+
 void findAndPrintSolution(double a, double k)
 {
     Parameters parameters = { a, k };
@@ -158,14 +256,17 @@ int mainSolveAllAtSmallRect()
     double ks[] = { 0.44, 0.46, 0.48, 0.50, 0.52 };
     for (int i = 0; i < numofK; ++i) {
         for (int j = 0; j < numofA; ++j) {
-            printf("Equation %d: ", i * numofA + j + 1);
+            printf("Equation %d: (", i * numofA + j + 1);
             findAndPrintSolution(as[j], ks[i]);
         }
     }
     return 0;
 }
 
-int main()
+int main(int argc, char **argv)
 {
+    if (argc == 3) {
+        return mainFindAllRoots(argc, argv);
+    }
     return mainSolveAllAtSmallRect();
 }
