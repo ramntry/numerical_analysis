@@ -49,11 +49,14 @@ void printVector(Vector const *vector, FILE *fd)
     fprintf(fd, "]");
 }
 
-void readVector(FILE *fd, Vector *vector, size_t num)
+int readVector(FILE *fd, Vector *vector, size_t num)
 {
     assert(num <= vector->capacity);
     for (size_t i = 0; i < num; ++i) {
-        fscanf(fd, "%lf", &vector->values[i]);
+        if (fscanf(fd, "%lf", &vector->values[i]) != 1) {
+            return READ_VECTOR_ERROR;
+        }
     }
     vector->size = num;
+    return 0;
 }

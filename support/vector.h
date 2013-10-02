@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 
-#define PRINT_NUMERIC_PRECISION 6
+#define PRINT_NUMERIC_PRECISION (6)
+#define READ_VECTOR_ERROR (-1)
 
 typedef struct
 {
@@ -17,7 +18,7 @@ void initVector(Vector *vector, size_t capacity);
 void disposeVector(Vector *vector);
 void append(Vector *vector, double value);
 void concat(Vector *dst, Vector const *src);
-void readVector(FILE *fd, Vector *vector, size_t num);
+int readVector(FILE *fd, Vector *vector, size_t num);
 void printVector(Vector const *vector, FILE *fd);
 
 #endif
