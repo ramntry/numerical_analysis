@@ -13,7 +13,6 @@ FiniteDiffTable;
 FiniteDiffTable createFiniteDiffTable(Vector const *values);
 void disposeFiniteDiffTable(FiniteDiffTable *table);
 void printFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
-void printFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
 void prettyPrintFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
 
 #define fdt_at(table, i, j) \
