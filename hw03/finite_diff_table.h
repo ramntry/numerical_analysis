@@ -13,6 +13,8 @@ FiniteDiffTable;
 FiniteDiffTable createFiniteDiffTable(Vector const *values);
 void disposeFiniteDiffTable(FiniteDiffTable *table);
 void printFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
+void printFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
+void prettyPrintFiniteDiffTable(FiniteDiffTable const *table, FILE *fd);
 
 #define fdt_at(table, i, j) \
     (table).triangle.values[((j)*(2*(table).size - (j) + 1)) / 2 + (i)]

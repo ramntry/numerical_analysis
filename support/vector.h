@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 
-#define PRINT_NUMERIC_PRECISION 10
+#define PRINT_NUMERIC_PRECISION 6
 
 typedef struct
 {

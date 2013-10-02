@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -6,6 +7,7 @@
 double calc(FiniteDiffTable *table, double startX, double step, double point, int isEnd)
 {
     size_t const depth = 5;
+    assert(depth < table->size);
     size_t offset = (size_t)((point - startX) / step) + isEnd;
     double finiteDiffs[depth];
     for (size_t i = 0; i < depth; ++i) {
@@ -54,7 +56,7 @@ int main(int argc, char **argv)
     FiniteDiffTable table = createFiniteDiffTable(&values);
     disposeVector(&values);
 
-    printFiniteDiffTable(&table, stdout);
+    prettyPrintFiniteDiffTable(&table, stdout);
 
     double beginValue = calc(&table, startX, step, beginX, 0);
     printf("x = %.*lf\tf(x) = %.*lf\n", PRINT_NUMERIC_PRECISION, beginX, PRINT_NUMERIC_PRECISION, beginValue);
