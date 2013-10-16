@@ -115,7 +115,9 @@ int main(int argc, char **argv)
     int const reversePos = 2;
     double const reverseY = 1.782125;
     double const reverseResult = iterate(&table, startX, step, reverseY, reversePos, reverseOffset);
-    printf("\n[reverse] f(x) = %.*lf\tx = %.*lf\n", PRINT_NUMERIC_PRECISION, reverseY, PRINT_NUMERIC_PRECISION, reverseResult);
+    double const checkY = calc(&table, startX, step, reverseResult, reversePos);
+    printf("\n[reverse] y = %.*lf\tx = %.*lf\tf(x) = %.*lf\n", PRINT_NUMERIC_PRECISION + 4, reverseY
+            , PRINT_NUMERIC_PRECISION, reverseResult, PRINT_NUMERIC_PRECISION + 4, checkY);
 
     disposeFiniteDiffTable(&table);
     return 0;
