@@ -4,6 +4,7 @@
 #include "../support/vector.h"
 
 size_t const numof_my_xs = 5;
+size_t const numof_checkpoints = 20;
 double pi;
 double min_x;
 double max_x;
@@ -56,14 +57,42 @@ void printTable(Table const *table, char const *name)
     printf("\n\n");
 }
 
+long fact(long n)
+{
+    long acc = 1;
+    for (long i = n; i > 0; --i) {
+        acc *= i;
+    }
+    return acc;
+}
+
 double my_f(double x)
 {
     return sin(x / 3.0);
 }
 
+double error_koeff_f(long size)
+{
+    return pow(3.0, -size) / fact(size);
+}
+
 double my_g(double x)
 {
     return x + sin(10.0 * x);
+}
+
+double error_koeff_g(long size)
+{
+    return pow(10.0, size) / fact(size);
+}
+
+double errorUpperbound(Table const *table, double x, double error_koeff)
+{
+    double acc = 1.0;
+    for (size_t j = 0; j < table->xs.size; ++j) {
+        acc *= x - table->xs.values[j];
+    }
+    return fabs(acc * error_koeff);
 }
 
 double lagrangeValue(Table const *table, double x)
@@ -83,6 +112,31 @@ double lagrangeValue(Table const *table, double x)
         acc += (numerator * table->ys.values[k]) / denominator;
     }
     return acc;
+}
+
+void printReport(Table const *table, char const *name)
+{
+    printTable(table, name);
+    double const error_koeff = (table->f == my_f ? error_koeff_f : error_koeff_g)(table->xs.size);
+    char const func_char = table->f == my_f ? 'f' : 'g';
+    double const step = (max_x - min_x) / numof_checkpoints;
+    double curr_x = min_x;
+    double max_error = 0.0;
+    double max_upperbound = 0.0;
+    printf("No | x            | %c(x)         | Ln(%c, x)        | error           | A                      | error <= A\n", func_char, func_char);
+    printf("---+--------------+--------------+-----------------+-----------------+------------------------+-----------\n");
+    for (size_t i = 1; i <= numof_checkpoints; ++i) {
+        double const y = table->f(curr_x);
+        double const lagrange = lagrangeValue(table, curr_x);
+        double const error = fabs(y - lagrange);
+        double const error_upperbound = errorUpperbound(table, curr_x, error_koeff);
+        printf("%2zu | %+.9f | %+.9f | %+15.9f | %+15.9f | %+22.9f | %s\n"
+                , i, curr_x, y, lagrange, error, error_upperbound, error <= error_upperbound ? "Yes" : "No");
+        curr_x += step;
+        max_error = error > max_error ? error : max_error;
+        max_upperbound = error_upperbound > max_upperbound ? error_upperbound : max_upperbound;
+    }
+    printf("\nmax error = %+.9f\nmax A     = %+.9f\n\n\n", max_error, max_upperbound);
 }
 
 Table createMyTable()
@@ -140,13 +194,23 @@ int main()
     Table middle_table = createTable(min_x, max_x, 1);
     Table right_table = createTable(min_x, max_x, 2);
 
-    printTable(&my_table, "Initial table");
-    printTable(&doubled_table, "Doubled table");
-    printTable(&left_table, "Left table");
-    printTable(&middle_table, "Middle table");
-    printTable(&right_table, "Right table");
+    printReport(&my_table, "Initial table");
+    printReport(&doubled_table, "Doubled table");
+    printReport(&left_table, "Left table");
+    printReport(&middle_table, "Middle table");
+    printReport(&right_table, "Right table");
 
-    printf("f(%f) = %f\n", pi, lagrangeValue(&my_table, pi));
+    resetFunction(&right_table, my_g);
+    resetFunction(&middle_table, my_g);
+    resetFunction(&left_table, my_g);
+    resetFunction(&doubled_table, my_g);
+    resetFunction(&my_table, my_g);
+
+    printReport(&my_table, "Initial table");
+    printReport(&doubled_table, "Doubled table");
+    printReport(&left_table, "Left table");
+    printReport(&middle_table, "Middle table");
+    printReport(&right_table, "Right table");
 
     disposeTable(&right_table);
     disposeTable(&middle_table);

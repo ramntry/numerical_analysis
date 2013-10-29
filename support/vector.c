@@ -41,10 +41,10 @@ void printVector(Vector const *vector, FILE *fd)
 {
     fprintf(fd, "[");
     if (vector->size != 0) {
-        fprintf(fd, "%.*lf", PRINT_NUMERIC_PRECISION, vector->values[0]);
+        fprintf(fd, "%+.*lf", PRINT_NUMERIC_PRECISION, vector->values[0]);
     }
     for (size_t i = 1; i < vector->size; ++i) {
-        fprintf(fd, ", %.*lf", PRINT_NUMERIC_PRECISION, vector->values[i]);
+        fprintf(fd, ", %+.*lf", PRINT_NUMERIC_PRECISION, vector->values[i]);
     }
     fprintf(fd, "]");
 }
