@@ -2,10 +2,38 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
 #include <time.h>
 #include <math.h>
 #include "../support/vector.h"
 #include "../support/polynomial.h"
+
+char const *f_strrep = "sin(x/3)";
+char const *g_strrep = "x + sin(10x)";
+char const f_charrep = 'f';
+char const g_charrep = 'g';
+
+long factorial(long n);
+
+long double my_f(long double x)
+{
+    return sin(x / 3.0);
+}
+
+long double error_coeff_f(long size)
+{
+    return pow(3.0, -size) / factorial(size);
+}
+
+long double my_g(long double x)
+{
+    return x + sin(10.0 * x);
+}
+
+long double error_coeff_g(long size)
+{
+    return pow(10.0, size) / factorial(size);
+}
 
 size_t const numof_my_xs = 5;
 size_t const numof_checkpoints = 20;
@@ -54,9 +82,9 @@ void resetFunction(Table *table, Function new_f)
     }
 }
 
-void printTable(Table const *table, char const *name)
+void printTable(Table const *table)
 {
-    printf("%s:\nxs: ", name);
+    printf("xs: ");
     printVector(&table->xs, stdout);
     printf("\nys: ");
     printVector(&table->ys, stdout);
@@ -68,33 +96,13 @@ long double frand()
     return no_random ? 0.5 : (double)rand() / RAND_MAX;
 }
 
-long fact(long n)
+long factorial(long n)
 {
     long acc = 1;
     for (long i = n; i > 0; --i) {
         acc *= i;
     }
     return acc;
-}
-
-long double my_f(long double x)
-{
-    return sin(x / 3.0);
-}
-
-long double error_coeff_f(long size)
-{
-    return pow(3.0, -size) / fact(size);
-}
-
-long double my_g(long double x)
-{
-    return x + sin(10.0 * x);
-}
-
-long double error_coeff_g(long size)
-{
-    return pow(10.0, size) / fact(size);
 }
 
 long double errorUpperbound(Table const *table, long double x, long double error_coeff)
@@ -125,14 +133,13 @@ long double lagrangeValue(Table const *table, long double x)
     return acc;
 }
 
-Polynomial createLagrangePolynomial(Table const *table)
+void makeLagrangePolynomial(Polynomial *polynomial, Table const *table)
 {
     size_t const size = table->xs.size;
-    Polynomial acc;
-    initPolynomial(&acc, size - 1);
-    setToScalar(&acc, 0.0);
+    initPolynomial(polynomial, size - 1);
+    setToScalar(polynomial, 0.0);
     Polynomial term;
-    initPolynomial(&term, acc.deg);
+    initPolynomial(&term, polynomial->deg);
     for (size_t k = 0; k < size; ++k) {
         setToScalar(&term, 1.0);
         for (size_t j = 0; j < size; ++j) {
@@ -146,23 +153,24 @@ Polynomial createLagrangePolynomial(Table const *table)
             denominator *= (j == k ? 1.0 : xk - table->xs.values[j]);
         }
         multiplyByScalar(&term, table->ys.values[k] / denominator);
-        addPolynomial(&acc, &term);
+        addPolynomial(polynomial, &term);
     }
     disposePolynomial(&term);
-    return acc;
 }
 
 void printReport(Table const *table, char const *name)
 {
-    putchar('\n');
-    printTable(table, name);
+    char const func_char = table->f == my_f ? f_charrep : g_charrep;
+    char const *func_str = table->f == my_f ? f_strrep  : g_strrep;
+    printf("\n%s for %c(x) = %s\n", name, func_char, func_str);
+    printTable(table);
     long double const error_coeff = (table->f == my_f ? error_coeff_f : error_coeff_g)(table->xs.size);
-    char const func_char = table->f == my_f ? 'f' : 'g';
     long double const step = (max_x - min_x) / numof_checkpoints;
     long double curr_x = min_x;
     long double max_error = 0.0;
     long double max_upperbound = 0.0;
-    Polynomial polynomial = createLagrangePolynomial(table);
+    Polynomial polynomial;
+    makeLagrangePolynomial(&polynomial, table);
     printf("Ln(%c, x) = ", func_char);
     printPolynomial(&polynomial, stdout);
     printf("\n\nNo | x            | %c(x)         | Ln(%c, x)         | error            | A                      | error <= A\n", func_char, func_char);
@@ -186,7 +194,8 @@ void printReport(Table const *table, char const *name)
     disposePolynomial(&polynomial);
 }
 
-long double calcMaxError(Function f, size_t numof_xs, size_t numof_tests, long double min_x, long double max_x)
+long double calcMaxError(Function f, Polynomial *polynomial
+        , size_t numof_xs, size_t numof_tests, long double min_x, long double max_x)
 {
     long double const step = (max_x - min_x) / numof_xs;
     Table table;
@@ -196,7 +205,7 @@ long double calcMaxError(Function f, size_t numof_xs, size_t numof_tests, long d
         tableAppend(&table, curr_x + frand() * step);
         curr_x += step;
     }
-    Polynomial polynomial = createLagrangePolynomial(&table);
+    makeLagrangePolynomial(polynomial, &table);
     disposeTable(&table);
 
     long double const test_step = (min_x - max_x) / numof_tests;
@@ -204,38 +213,56 @@ long double calcMaxError(Function f, size_t numof_xs, size_t numof_tests, long d
     long double curr_test = min_x;
     for (size_t i = 0; i < numof_tests; ++i) {
         long double const x = curr_test + frand() * test_step;
-        long double const y = calcValue(&polynomial, x);
+        long double const y = calcValue(polynomial, x);
         long double const right_y = f(x);
         long double const error = y - right_y;
         max_error = fabs(error) > fabs(max_error) ? error : max_error;
         curr_test += test_step;
     }
-    disposePolynomial(&polynomial);
     return max_error;
 }
 
 void reportMaxError()
 {
-    size_t const numof_tests = 500;
+    size_t const numof_tests = 5000;
     size_t const max_numof_xs = 400;
-    size_t const numof_avg_iters = 20;
-    printf("Max error for function g(x) and various number (#) of interpolation points:\n");
-    printf(" #   | error      \n");
+    size_t const numof_avg_iters = 50;
+    printf("\nMax error for function g(x) = %s and various number (#) of interpolation points:\n", g_strrep);
+    printf(" #   | error %s\n", no_random ? "     " : "(avg)");
     printf("-----+------------\n");
+    Polynomial best_polynomial;
+    initPolynomial(&best_polynomial, DISPOSED_POLYNOMIAL_DEG);
+    double best_error = LDBL_MAX;
     for (size_t numof_xs_step = 1; numof_xs_step <= 100; numof_xs_step *= 10) {
+        Polynomial curr_polynomial;
+        initPolynomial(&curr_polynomial, DISPOSED_POLYNOMIAL_DEG);
         size_t curr_numof_xs = numof_xs_step;
         for (size_t i = 0; i < 9 && curr_numof_xs <= max_numof_xs; ++i) {
-            long double error = calcMaxError(my_g, curr_numof_xs, numof_tests, min_x, max_x);
-            if (!no_random) {
-                for (size_t k = 1; k < numof_avg_iters; ++k) {
-                    error += calcMaxError(my_g, curr_numof_xs, numof_tests, min_x, max_x);
+            size_t numof_iters = no_random ? 1 : numof_avg_iters;
+            long double error = 0.0;
+            for (size_t k = 0; k < numof_iters; ++k) {
+                long double curr_error = calcMaxError(my_g, &curr_polynomial, curr_numof_xs, numof_tests, min_x, max_x);
+                if (fabs(best_error) > fabs(curr_error)) {
+                    best_error = curr_error;
+                    disposePolynomial(&best_polynomial);
+                    best_polynomial = curr_polynomial;
+                } else {
+                    disposePolynomial(&curr_polynomial);
                 }
-                error /= numof_avg_iters;
+                error += curr_error;
             }
+            error /= numof_iters;
             printf("%4zu | %+11.4Lg\n", curr_numof_xs, error);
+            fflush(stdout);
             curr_numof_xs += numof_xs_step;
         }
     }
+    if (best_polynomial.deg != DISPOSED_POLYNOMIAL_DEG) {
+        printf("The best polynomial is: ");
+        printPolynomial(&best_polynomial, stdout);
+        putchar('\n');
+    }
+    disposePolynomial(&best_polynomial);
 }
 
 Table createMyTable()
@@ -281,14 +308,24 @@ Table doubleTable(Table const *table, long double min_x)
     return doubled_table;
 }
 
+void print_usage(const char *program_name)
+{
+    fprintf(stderr, "Usage: %s [-n]\n\t-n\tForbid small random noise for interpolation and check points\n\n", program_name);
+}
+
 int main(int argc, char **argv)
 {
     srand(time(NULL));
     pi = 4.0 * atan(1);
     min_x = 0.0;
     max_x = 3.0 * pi;
-    if (argc > 1 && strcmp(argv[1], "-n") == 0) {
-        no_random = 1;
+    if (argc > 1) {
+        if (strcmp(argv[1], "-n") == 0) {
+            no_random = 1;
+        } else {
+            print_usage(argv[0]);
+            return 1;
+        }
     }
 
     Table my_table = createMyTable();
