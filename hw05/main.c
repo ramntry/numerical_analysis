@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
@@ -11,6 +12,7 @@ size_t const numof_checkpoints = 20;
 double pi;
 double min_x;
 double max_x;
+int no_random;
 
 typedef double (*Function)(double x);
 
@@ -62,7 +64,7 @@ void printTable(Table const *table, char const *name)
 
 double frand()
 {
-  return (double)rand() / RAND_MAX;
+  return no_random ? 0.5 : (double)rand() / RAND_MAX;
 }
 
 long fact(long n)
@@ -226,7 +228,7 @@ Table doubleTable(Table const *table, double min_x)
     return doubled_table;
 }
 
-int main()
+int main(int argc, char **argv)
 {
 #ifndef NDEBUG
     srand(time(NULL));
@@ -234,6 +236,9 @@ int main()
     pi = 4.0 * atan(1);
     min_x = 0.0;
     max_x = 3.0 * pi;
+    if (argc > 1 && strcmp(argv[1], "-n") == 0) {
+        no_random = 1;
+    }
 
     Table my_table = createMyTable();
     Table doubled_table = doubleTable(&my_table, min_x);
