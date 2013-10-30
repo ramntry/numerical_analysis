@@ -226,10 +226,10 @@ void reportMaxError()
 {
     size_t const numof_tests = 5000;
     size_t const max_numof_xs = 400;
-    size_t const numof_avg_iters = 50;
+    size_t const numof_avg_iters = no_random ? 1 : 50;
     printf("\nMax error for function g(x) = %s (on [%Lf, %Lf]) and various number (#) of interpolation points:\n", g_strrep, min_x, max_x);
-    printf(" #   | error %s\n", no_random ? "     " : "(avg)");
-    printf("-----+------------\n");
+    printf(" #   | error (avg among %4zu)\n", numof_avg_iters);
+    printf("-----+-----------------------\n");
     Polynomial best_polynomial;
     initPolynomial(&best_polynomial, DISPOSED_POLYNOMIAL_DEG);
     double best_error = LDBL_MAX;
@@ -238,9 +238,8 @@ void reportMaxError()
         initPolynomial(&curr_polynomial, DISPOSED_POLYNOMIAL_DEG);
         size_t curr_numof_xs = numof_xs_step;
         for (size_t i = 0; i < 9 && curr_numof_xs <= max_numof_xs; ++i) {
-            size_t numof_iters = no_random ? 1 : numof_avg_iters;
             long double error = 0.0;
-            for (size_t k = 0; k < numof_iters; ++k) {
+            for (size_t k = 0; k < numof_avg_iters; ++k) {
                 long double curr_error = calcMaxError(my_g, &curr_polynomial, curr_numof_xs, numof_tests, min_x, max_x);
                 if (fabs(best_error) > fabs(curr_error)) {
                     best_error = curr_error;
@@ -251,8 +250,8 @@ void reportMaxError()
                 }
                 error += curr_error;
             }
-            error /= numof_iters;
-            printf("%4zu | %+11.4Lg\n", curr_numof_xs, error);
+            error /= numof_avg_iters;
+            printf("%4zu | %-+22.4Lg\n", curr_numof_xs, error);
             fflush(stdout);
             curr_numof_xs += numof_xs_step;
         }
