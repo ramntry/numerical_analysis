@@ -9,7 +9,7 @@
 #define READ_POLYNOMIAL_ERROR (-1)
 #define READ_POLYNOMIAL_OK (1)
 #define PRINT_POLYNOMIAL_EPS (1.e-8)
-#define PRINT_POLYNOMIAL_PRECISION (2)
+#define PRINT_POLYNOMIAL_PRECISION (9)
 
 typedef struct
 {

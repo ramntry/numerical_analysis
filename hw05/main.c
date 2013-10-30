@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 #include <math.h>
 #include "../support/vector.h"
 #include "../support/polynomial.h"
@@ -157,12 +158,18 @@ void printReport(Table const *table, char const *name)
     double curr_x = min_x;
     double max_error = 0.0;
     double max_upperbound = 0.0;
-    printf("No | x            | %c(x)         | Ln(%c, x)         | error            | A                      | error <= A\n", func_char, func_char);
+    Polynomial polynomial = createLagrangePolynomial(table);
+    printf("Lagrange polynomial: ");
+    printPolynomial(&polynomial, stdout);
+    printf("\n\nNo | x            | %c(x)         | Ln(%c, x)         | error            | A                      | error <= A\n", func_char, func_char);
     printf("---+--------------+--------------+------------------+------------------+------------------------+-----------\n");
     for (size_t i = 1; i <= numof_checkpoints; ++i) {
         double const x = curr_x + frand() * step;
         double const y = table->f(x);
         double const lagrange = lagrangeValue(table, x);
+
+        assert(fabs(calcValue(&polynomial, x) - lagrange) < 1.e-6);
+
         double const error = fabs(y - lagrange);
         double const error_upperbound = errorUpperbound(table, x, error_koeff);
         printf("%2zu | %+.9f | %+.9f | %+16.9f | %+16.9f | %+22.9f | %s\n"
@@ -172,6 +179,7 @@ void printReport(Table const *table, char const *name)
         max_upperbound = error_upperbound > max_upperbound ? error_upperbound : max_upperbound;
     }
     printf("\nmax error = %+.9f\nmax A     = %+.9f\n\n\n", max_error, max_upperbound);
+    disposePolynomial(&polynomial);
 }
 
 Table createMyTable()
@@ -219,6 +227,9 @@ Table doubleTable(Table const *table, double min_x)
 
 int main()
 {
+#ifndef NDEBUG
+    srand(time(NULL));
+#endif
     pi = 4.0 * atan(1);
     min_x = 0.0;
     max_x = 3.0 * pi;
