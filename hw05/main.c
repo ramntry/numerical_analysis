@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "../support/vector.h"
+#include "../support/polynomial.h"
 
 size_t const numof_my_xs = 5;
 size_t const numof_checkpoints = 20;

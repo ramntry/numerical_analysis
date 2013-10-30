@@ -12,6 +12,7 @@ void initPolynomial(Polynomial *polynomial, int deg)
         return;
     }
     polynomial->coeffs = (double *)malloc(sizeof(double) * (deg + 1));
+    polynomial->effective_deg = UNKNOWN_EFFECTIVE_DEG;
 }
 
 void disposePolynomial(Polynomial *polynomial)
@@ -19,6 +20,7 @@ void disposePolynomial(Polynomial *polynomial)
     free(polynomial->coeffs);
     polynomial->coeffs = NULL;
     polynomial->deg = DISPOSED_POLYNOMIAL_DEG;
+    polynomial->effective_deg = UNKNOWN_EFFECTIVE_DEG;
 }
 
 int readPolynomial(Polynomial *polynomial, FILE *fd)
@@ -34,6 +36,7 @@ int readPolynomial(Polynomial *polynomial, FILE *fd)
             return READ_POLYNOMIAL_ERROR;
         }
     }
+    polynomial->effective_deg = polynomial->deg;
     return READ_POLYNOMIAL_OK;
 }
 
@@ -82,6 +85,49 @@ void multiplyByScalar(Polynomial *polynomial, double scalar)
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
     for (int i = 0; i <= polynomial->deg; ++i) {
         polynomial->coeffs[i] *= scalar;
+    }
+}
+
+void setToScalar(Polynomial *polynomial, double scalar)
+{
+    assert(polynomial->deg >= 0);
+    polynomial->coeffs[0] = scalar;
+    for (int i = 1; i <= polynomial->deg; ++i) {
+        polynomial->coeffs[i] = 0.0;
+    }
+    polynomial->effective_deg = 0;
+}
+
+void addRoot(Polynomial *polynomial, double root)
+{
+    assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG
+        && polynomial->effective_deg != UNKNOWN_EFFECTIVE_DEG
+        && polynomial->effective_deg < polynomial->deg);
+    int new_deg = ++polynomial->effective_deg;
+    polynomial->coeffs[new_deg] = polynomial->coeffs[new_deg - 1];
+    for (int i = new_deg - 1; i > 0; --i) {
+        polynomial->coeffs[i] *= -root;
+        polynomial->coeffs[i] += polynomial->coeffs[i - 1];
+    }
+    polynomial->coeffs[0] *= -root;
+}
+
+void addPolynomial(Polynomial *dst, Polynomial const *src)
+{
+    assert(dst->deg != DISPOSED_POLYNOMIAL_DEG
+        && dst->effective_deg != UNKNOWN_EFFECTIVE_DEG
+        && dst->effective_deg <= dst->deg
+        && src->deg != DISPOSED_POLYNOMIAL_DEG
+        && src->effective_deg != UNKNOWN_EFFECTIVE_DEG
+        && src->effective_deg <= src->deg
+        && dst->deg <= src->effective_deg);
+    for (int i = dst->effective_deg + 1; i <= src->effective_deg; ++i) {
+        dst->coeffs[i] = 0.0;
+    }
+    dst->effective_deg = src->effective_deg > dst->effective_deg
+                       ? src->effective_deg : dst->effective_deg;
+    for (int i = 0; i <= src->effective_deg; ++i) {
+        dst->coeffs[i] += src->coeffs[i];
     }
 }
 
