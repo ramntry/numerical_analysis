@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include "../support/vector.h"
@@ -55,6 +56,11 @@ void printTable(Table const *table, char const *name)
     printf("\nys: ");
     printVector(&table->ys, stdout);
     printf("\n\n");
+}
+
+double frand()
+{
+  return (double)rand() / RAND_MAX;
 }
 
 long fact(long n)
@@ -123,15 +129,16 @@ void printReport(Table const *table, char const *name)
     double curr_x = min_x;
     double max_error = 0.0;
     double max_upperbound = 0.0;
-    printf("No | x            | %c(x)         | Ln(%c, x)        | error           | A                      | error <= A\n", func_char, func_char);
-    printf("---+--------------+--------------+-----------------+-----------------+------------------------+-----------\n");
+    printf("No | x            | %c(x)         | Ln(%c, x)         | error            | A                      | error <= A\n", func_char, func_char);
+    printf("---+--------------+--------------+------------------+------------------+------------------------+-----------\n");
     for (size_t i = 1; i <= numof_checkpoints; ++i) {
-        double const y = table->f(curr_x);
-        double const lagrange = lagrangeValue(table, curr_x);
+        double const x = curr_x + frand() * step;
+        double const y = table->f(x);
+        double const lagrange = lagrangeValue(table, x);
         double const error = fabs(y - lagrange);
-        double const error_upperbound = errorUpperbound(table, curr_x, error_koeff);
-        printf("%2zu | %+.9f | %+.9f | %+15.9f | %+15.9f | %+22.9f | %s\n"
-                , i, curr_x, y, lagrange, error, error_upperbound, error <= error_upperbound ? "Yes" : "No");
+        double const error_upperbound = errorUpperbound(table, x, error_koeff);
+        printf("%2zu | %+.9f | %+.9f | %+16.9f | %+16.9f | %+22.9f | %s\n"
+                , i, x, y, lagrange, error, error_upperbound, error <= error_upperbound ? "Yes" : "No");
         curr_x += step;
         max_error = error > max_error ? error : max_error;
         max_upperbound = error_upperbound > max_upperbound ? error_upperbound : max_upperbound;
@@ -160,7 +167,7 @@ Table createTable(double min_x, double max_x, size_t num_part)
     initTable(&table, numof_my_xs, my_f);
     double curr_x = min_x + num_part * part_size;
     for (size_t i = 0; i < numof_my_xs; ++i) {
-        tableAppend(&table, curr_x);
+        tableAppend(&table, curr_x + frand() * step);
         curr_x += step;
     }
     return table;
@@ -175,7 +182,7 @@ Table doubleTable(Table const *table, double min_x)
     for (size_t i = 0; i < old_size; ++i) {
         double curr_x = table->xs.values[i];
         assert(curr_x > prev_x && "table must be ascending and starts above min_x");
-        tableAppend(&doubled_table, prev_x + 0.5 * (curr_x - prev_x));
+        tableAppend(&doubled_table, prev_x + (0.25 + 0.5 * frand()) * (curr_x - prev_x));
         tableAppend(&doubled_table, curr_x);
         prev_x = curr_x;
     }
