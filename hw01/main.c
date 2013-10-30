@@ -6,58 +6,11 @@
 #include "../support/polynomial.h"
 
 #define NUMERIC_EPS (1.e-9)
-#define PRINT_NUMERIC_PRECISION (12)
-
 #define NUM_MONTE_CARLO_POINTS (200)
 
 #ifndef max
 #define max(a, b) ((a) < (b) ? (b) : (a))
 #endif
-
-typedef struct
-{
-    size_t capacity;
-    size_t size;
-    double *values;
-}
-Vector;
-
-void initVector(Vector *vector, size_t capacity)
-{
-    vector->capacity = capacity;
-    vector->size = 0;
-    if (capacity > 0) {
-        vector->values = (double *)malloc(sizeof(double) * capacity);
-    } else {
-        vector->values = NULL;
-    }
-}
-
-void disposeVector(Vector *vector)
-{
-    free(vector->values);
-    vector->values = NULL;
-    vector->size = 0;
-    vector->capacity = 0;
-}
-
-void append(Vector *vector, double value)
-{
-    assert(vector->size < vector->capacity);
-    vector->values[vector->size++] = value;
-}
-
-void printVector(Vector const *vector, FILE *fd)
-{
-    fprintf(fd, "[");
-    if (vector->size != 0) {
-        fprintf(fd, "%.*lf", PRINT_NUMERIC_PRECISION, vector->values[0]);
-    }
-    for (size_t i = 1; i < vector->size; ++i) {
-        fprintf(fd, ", %.*lf", PRINT_NUMERIC_PRECISION, vector->values[i]);
-    }
-    fprintf(fd, "]");
-}
 
 double rootsUpperBound(Polynomial const *polynomial)
 {
