@@ -8,7 +8,7 @@ void initVector(Vector *vector, size_t capacity)
     vector->capacity = capacity;
     vector->size = 0;
     if (capacity > 0) {
-        vector->values = (double *)malloc(sizeof(double) * capacity);
+        vector->values = (long double *)malloc(sizeof(long double) * capacity);
     } else {
         vector->values = NULL;
     }
@@ -22,7 +22,7 @@ void disposeVector(Vector *vector)
     vector->capacity = 0;
 }
 
-void append(Vector *vector, double value)
+void append(Vector *vector, long double value)
 {
     assert(vector->size < vector->capacity);
     vector->values[vector->size++] = value;
@@ -41,10 +41,10 @@ void printVector(Vector const *vector, FILE *fd)
 {
     fprintf(fd, "[");
     if (vector->size != 0) {
-        fprintf(fd, "%+.*lf", PRINT_NUMERIC_PRECISION, vector->values[0]);
+        fprintf(fd, "%+.*Lf", PRINT_NUMERIC_PRECISION, vector->values[0]);
     }
     for (size_t i = 1; i < vector->size; ++i) {
-        fprintf(fd, ", %+.*lf", PRINT_NUMERIC_PRECISION, vector->values[i]);
+        fprintf(fd, ", %+.*Lf", PRINT_NUMERIC_PRECISION, vector->values[i]);
     }
     fprintf(fd, "]");
 }
@@ -53,7 +53,7 @@ int readVector(FILE *fd, Vector *vector, size_t num)
 {
     assert(num <= vector->capacity);
     for (size_t i = 0; i < num; ++i) {
-        if (fscanf(fd, "%lf", &vector->values[i]) != 1) {
+        if (fscanf(fd, "%Lf", &vector->values[i]) != 1) {
             return READ_VECTOR_ERROR;
         }
     }

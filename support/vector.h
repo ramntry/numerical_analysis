@@ -10,13 +10,13 @@ typedef struct
 {
     size_t capacity;
     size_t size;
-    double *values;
+    long double *values;
 }
 Vector;
 
 void initVector(Vector *vector, size_t capacity);
 void disposeVector(Vector *vector);
-void append(Vector *vector, double value);
+void append(Vector *vector, long double value);
 void concat(Vector *dst, Vector const *src);
 int readVector(FILE *fd, Vector *vector, size_t num);
 void printVector(Vector const *vector, FILE *fd);
