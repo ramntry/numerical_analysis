@@ -162,7 +162,7 @@ void printReport(Table const *table, char const *name)
 {
     char const func_char = table->f == my_f ? f_charrep : g_charrep;
     char const *func_str = table->f == my_f ? f_strrep  : g_strrep;
-    printf("\n%s for %c(x) = %s\n", name, func_char, func_str);
+    printf("\n%s for %c(x) = %s on [%Lf, %Lf]\n", name, func_char, func_str, min_x, max_x);
     printTable(table);
     long double const error_coeff = (table->f == my_f ? error_coeff_f : error_coeff_g)(table->xs.size);
     long double const step = (max_x - min_x) / numof_checkpoints;
@@ -227,7 +227,7 @@ void reportMaxError()
     size_t const numof_tests = 5000;
     size_t const max_numof_xs = 400;
     size_t const numof_avg_iters = 50;
-    printf("\nMax error for function g(x) = %s and various number (#) of interpolation points:\n", g_strrep);
+    printf("\nMax error for function g(x) = %s (on [%Lf, %Lf]) and various number (#) of interpolation points:\n", g_strrep, min_x, max_x);
     printf(" #   | error %s\n", no_random ? "     " : "(avg)");
     printf("-----+------------\n");
     Polynomial best_polynomial;
