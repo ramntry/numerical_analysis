@@ -2,6 +2,7 @@
 #define POLYNOMIAL_H_
 
 #include <stdio.h>
+#include "vector.h"
 
 #define DISPOSED_POLYNOMIAL_DEG (-1)
 #define UNKNOWN_EFFECTIVE_DEG (-2)
@@ -27,5 +28,9 @@ void setToScalar(Polynomial *polynomial, double scalar);
 void multiplyByScalar(Polynomial *polynomial, double scalar);
 void makePositiveLeadingCoeff(Polynomial *polynomial);
 void addRoot(Polynomial *polynomial, double root);
+void addPolynomial(Polynomial *dst, Polynomial const *src);
+Polynomial getDerivative(Polynomial const *polynomial);
+double calcValue(Polynomial const *polynomial, double point);
+Vector calcValues(Polynomial const *polynomial, Vector const *points);
 
 #endif

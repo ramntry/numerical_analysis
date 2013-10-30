@@ -113,44 +113,6 @@ double rootsLowerBound(Polynomial const *polynomial)
     return lowerBound;
 }
 
-Polynomial getDerivative(Polynomial const *polynomial)
-{
-    assert(polynomial->deg >= 0);
-    Polynomial derivative;
-    if (polynomial->deg == 0) {
-        initPolynomial(&derivative, 0);
-        derivative.coeffs[0] = 0.0;
-        return derivative;
-    }
-    initPolynomial(&derivative, polynomial->deg - 1);
-    for (int i = 1; i <= polynomial->deg; ++i) {
-        derivative.coeffs[i - 1] = i * polynomial->coeffs[i];
-    }
-    return derivative;
-}
-
-double calcValue(Polynomial const *polynomial, double point)
-{
-    assert(polynomial->deg >= 0);
-    double result = polynomial->coeffs[polynomial->deg];
-    for (int i = polynomial->deg - 1; i >= 0; --i) {
-        result *= point;
-        result += polynomial->coeffs[i];
-    }
-    return result;
-}
-
-Vector calcValues(Polynomial const *polynomial, Vector const *points)
-{
-    Vector values;
-    initVector(&values, points->size);
-    values.size = values.capacity;
-    for (size_t i = 0; i < values.size; ++i) {
-        values.values[i] = calcValue(polynomial, points->values[i]);
-    }
-    return values;
-}
-
 Vector findStartingPoints(Polynomial const *polynomial, double lowerBound, double upperBound)
 {
     double const step = (upperBound - lowerBound) / NUM_MONTE_CARLO_POINTS;

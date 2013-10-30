@@ -121,6 +121,33 @@ double lagrangeValue(Table const *table, double x)
     return acc;
 }
 
+Polynomial createLagrangePolynomial(Table const *table)
+{
+    size_t const size = table->xs.size;
+    Polynomial acc;
+    initPolynomial(&acc, size - 1);
+    setToScalar(&acc, 0.0);
+    Polynomial term;
+    initPolynomial(&term, acc.deg);
+    for (size_t k = 0; k < size; ++k) {
+        setToScalar(&term, 1.0);
+        for (size_t j = 0; j < size; ++j) {
+            if (j != k) {
+                addRoot(&term, table->xs.values[j]);
+            }
+        }
+        double denominator = 1.0;
+        double const xk = table->xs.values[k];
+        for (size_t j = 0; j < size; ++j) {
+            denominator *= (j == k ? 1.0 : xk - table->xs.values[j]);
+        }
+        multiplyByScalar(&term, table->ys.values[k] / denominator);
+        addPolynomial(&acc, &term);
+    }
+    disposePolynomial(&term);
+    return acc;
+}
+
 void printReport(Table const *table, char const *name)
 {
     printTable(table, name);
