@@ -111,7 +111,7 @@ long double errorUpperbound(Table const *table, long double x, long double error
     for (size_t j = 0; j < table->xs.size; ++j) {
         acc *= x - table->xs.values[j];
     }
-    return fabs(acc * error_coeff);
+    return fabsl(acc * error_coeff);
 }
 
 long double lagrangeValue(Table const *table, long double x)
@@ -180,9 +180,9 @@ void printReport(Table const *table, char const *name)
         long double const y = table->f(x);
         long double const lagrange = lagrangeValue(table, x);
 
-        assert(fabs(calcValue(&polynomial, x) - lagrange) < 1.e-6);
+        assert(fabsl(calcValue(&polynomial, x) - lagrange) < 1.e-6);
 
-        long double const error = fabs(y - lagrange);
+        long double const error = fabsl(y - lagrange);
         long double const error_upperbound = errorUpperbound(table, x, error_coeff);
         printf("%2zu | %+.9Lf | %+.9Lf | %+16.9Lf | %+16.9Lf | %+22.9Lf | %s\n"
                 , i, x, y, lagrange, error, error_upperbound, error <= error_upperbound ? "Yes" : "No");
@@ -216,7 +216,7 @@ long double calcMaxError(Function f, Polynomial *polynomial
         long double const y = calcValue(polynomial, x);
         long double const right_y = f(x);
         long double const error = y - right_y;
-        max_error = fabs(error) > fabs(max_error) ? error : max_error;
+        max_error = fabsl(error) > fabsl(max_error) ? error : max_error;
         curr_test += test_step;
     }
     return max_error;
@@ -241,7 +241,7 @@ void reportMaxError()
             long double error = 0.0;
             for (size_t k = 0; k < numof_avg_iters; ++k) {
                 long double curr_error = calcMaxError(my_g, &curr_polynomial, curr_numof_xs, numof_tests, min_x, max_x);
-                if (fabs(best_error) > fabs(curr_error)) {
+                if (fabsl(best_error) > fabsl(curr_error)) {
                     best_error = curr_error;
                     disposePolynomial(&best_polynomial);
                     best_polynomial = curr_polynomial;

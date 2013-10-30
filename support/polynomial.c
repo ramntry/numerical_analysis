@@ -11,7 +11,7 @@ void initPolynomial(Polynomial *polynomial, int deg)
         polynomial->coeffs = NULL;
         return;
     }
-    polynomial->coeffs = (double *)malloc(sizeof(double) * (deg + 1));
+    polynomial->coeffs = (long double *)malloc(sizeof(long double) * (deg + 1));
     polynomial->effective_deg = UNKNOWN_EFFECTIVE_DEG;
 }
 
@@ -31,7 +31,7 @@ int readPolynomial(Polynomial *polynomial, FILE *fd)
     }
     initPolynomial(polynomial, polynomial->deg);
     for (int i = polynomial->deg; i >= 0; --i) {
-        if (fscanf(fd, "%lf", &polynomial->coeffs[i]) != 1) {
+        if (fscanf(fd, "%Lf", &polynomial->coeffs[i]) != 1) {
             disposePolynomial(polynomial);
             return READ_POLYNOMIAL_ERROR;
         }
@@ -45,17 +45,17 @@ void printPolynomial(Polynomial const *polynomial, FILE *fd)
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
     for (int i = polynomial->deg; i >= 0; --i) {
         if (i == polynomial->deg ) {
-            if (i == 0 || fabs(polynomial->coeffs[i] - 1.) >= PRINT_POLYNOMIAL_EPS) {
-                fprintf(fd, "%.*lf", PRINT_POLYNOMIAL_PRECISION, polynomial->coeffs[i]);
+            if (i == 0 || fabsl(polynomial->coeffs[i] - 1.) >= PRINT_POLYNOMIAL_EPS) {
+                fprintf(fd, "%.*Lf", PRINT_POLYNOMIAL_PRECISION, polynomial->coeffs[i]);
             }
-        } else if (fabs(polynomial->coeffs[i]) >= PRINT_POLYNOMIAL_EPS) {
+        } else if (fabsl(polynomial->coeffs[i]) >= PRINT_POLYNOMIAL_EPS) {
             if (polynomial->coeffs[i] >= 0) {
                 fprintf(fd, " + ");
             } else {
                 fprintf(fd, " - ");
             }
-            if (fabs(polynomial->coeffs[i] - 1.) >= PRINT_POLYNOMIAL_EPS || i == 0) {
-                fprintf(fd, "%.*lf", PRINT_POLYNOMIAL_PRECISION, fabs(polynomial->coeffs[i]));
+            if (fabsl(polynomial->coeffs[i] - 1.) >= PRINT_POLYNOMIAL_EPS || i == 0) {
+                fprintf(fd, "%.*Lf", PRINT_POLYNOMIAL_PRECISION, fabsl(polynomial->coeffs[i]));
             }
         } else {
             continue;
@@ -80,7 +80,7 @@ Polynomial getPolynomialFromUser()
     return polynomial;
 }
 
-void multiplyByScalar(Polynomial *polynomial, double scalar)
+void multiplyByScalar(Polynomial *polynomial, long double scalar)
 {
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG);
     for (int i = 0; i <= polynomial->deg; ++i) {
@@ -88,7 +88,7 @@ void multiplyByScalar(Polynomial *polynomial, double scalar)
     }
 }
 
-void setToScalar(Polynomial *polynomial, double scalar)
+void setToScalar(Polynomial *polynomial, long double scalar)
 {
     assert(polynomial->deg >= 0);
     polynomial->coeffs[0] = scalar;
@@ -98,7 +98,7 @@ void setToScalar(Polynomial *polynomial, double scalar)
     polynomial->effective_deg = 0;
 }
 
-void addRoot(Polynomial *polynomial, double root)
+void addRoot(Polynomial *polynomial, long double root)
 {
     assert(polynomial->deg != DISPOSED_POLYNOMIAL_DEG
         && polynomial->effective_deg != UNKNOWN_EFFECTIVE_DEG
@@ -155,10 +155,10 @@ Polynomial getDerivative(Polynomial const *polynomial)
     return derivative;
 }
 
-double calcValue(Polynomial const *polynomial, double point)
+long double calcValue(Polynomial const *polynomial, long double point)
 {
     assert(polynomial->deg >= 0);
-    double result = polynomial->coeffs[polynomial->deg];
+    long double result = polynomial->coeffs[polynomial->deg];
     for (int i = polynomial->deg - 1; i >= 0; --i) {
         result *= point;
         result += polynomial->coeffs[i];

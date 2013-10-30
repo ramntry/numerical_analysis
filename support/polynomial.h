@@ -14,7 +14,7 @@
 typedef struct
 {
     int deg;
-    double *coeffs;
+    long double *coeffs;
     int effective_deg;
 }
 Polynomial;
@@ -24,13 +24,13 @@ void disposePolynomial(Polynomial *polynomial);
 int readPolynomial(Polynomial *polynomial, FILE *fd);
 Polynomial getPolynomialFromUser();
 void printPolynomial(Polynomial const *polynomial, FILE *fd);
-void setToScalar(Polynomial *polynomial, double scalar);
-void multiplyByScalar(Polynomial *polynomial, double scalar);
+void setToScalar(Polynomial *polynomial, long double scalar);
+void multiplyByScalar(Polynomial *polynomial, long double scalar);
 void makePositiveLeadingCoeff(Polynomial *polynomial);
-void addRoot(Polynomial *polynomial, double root);
+void addRoot(Polynomial *polynomial, long double root);
 void addPolynomial(Polynomial *dst, Polynomial const *src);
 Polynomial getDerivative(Polynomial const *polynomial);
-double calcValue(Polynomial const *polynomial, double point);
+long double calcValue(Polynomial const *polynomial, long double point);
 Vector calcValues(Polynomial const *polynomial, Vector const *points);
 
 #endif
