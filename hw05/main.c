@@ -9,7 +9,7 @@
 #include "../support/polynomial.h"
 
 char const *f_strrep = "sin(x/3)";
-char const *g_strrep = "x + sin(10x)";
+char const *g_strrep = "sin(x/2)";
 char const f_charrep = 'f';
 char const g_charrep = 'g';
 
@@ -27,12 +27,12 @@ long double error_coeff_f(long size)
 
 long double my_g(long double x)
 {
-    return x + sin(10.0 * x);
+    return sin(0.5 * x);
 }
 
 long double error_coeff_g(long size)
 {
-    return pow(10.0, size) / factorial(size);
+    return pow(0.5, size) / factorial(size);
 }
 
 size_t const numof_my_xs = 5;
