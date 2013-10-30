@@ -151,6 +151,7 @@ Polynomial createLagrangePolynomial(Table const *table)
 
 void printReport(Table const *table, char const *name)
 {
+    putchar('\n');
     printTable(table, name);
     double const error_koeff = (table->f == my_f ? error_koeff_f : error_koeff_g)(table->xs.size);
     char const func_char = table->f == my_f ? 'f' : 'g';
@@ -159,7 +160,7 @@ void printReport(Table const *table, char const *name)
     double max_error = 0.0;
     double max_upperbound = 0.0;
     Polynomial polynomial = createLagrangePolynomial(table);
-    printf("Lagrange polynomial: ");
+    printf("Ln(%c, x) = ", func_char);
     printPolynomial(&polynomial, stdout);
     printf("\n\nNo | x            | %c(x)         | Ln(%c, x)         | error            | A                      | error <= A\n", func_char, func_char);
     printf("---+--------------+--------------+------------------+------------------+------------------------+-----------\n");
@@ -178,7 +179,7 @@ void printReport(Table const *table, char const *name)
         max_error = error > max_error ? error : max_error;
         max_upperbound = error_upperbound > max_upperbound ? error_upperbound : max_upperbound;
     }
-    printf("\nmax error = %+.9f\nmax A     = %+.9f\n\n\n", max_error, max_upperbound);
+    printf("\nmax error = %+.9f\nmax A     = %+.9f\n\n", max_error, max_upperbound);
     disposePolynomial(&polynomial);
 }
 
