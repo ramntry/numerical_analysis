@@ -64,7 +64,7 @@ void printTable(Table const *table, char const *name)
 
 double frand()
 {
-  return no_random ? 0.5 : (double)rand() / RAND_MAX;
+    return no_random ? 0.5 : (double)rand() / RAND_MAX;
 }
 
 long fact(long n)
@@ -81,7 +81,7 @@ double my_f(double x)
     return sin(x / 3.0);
 }
 
-double error_koeff_f(long size)
+double error_coeff_f(long size)
 {
     return pow(3.0, -size) / fact(size);
 }
@@ -91,18 +91,18 @@ double my_g(double x)
     return x + sin(10.0 * x);
 }
 
-double error_koeff_g(long size)
+double error_coeff_g(long size)
 {
     return pow(10.0, size) / fact(size);
 }
 
-double errorUpperbound(Table const *table, double x, double error_koeff)
+double errorUpperbound(Table const *table, double x, double error_coeff)
 {
     double acc = 1.0;
     for (size_t j = 0; j < table->xs.size; ++j) {
         acc *= x - table->xs.values[j];
     }
-    return fabs(acc * error_koeff);
+    return fabs(acc * error_coeff);
 }
 
 double lagrangeValue(Table const *table, double x)
@@ -155,7 +155,7 @@ void printReport(Table const *table, char const *name)
 {
     putchar('\n');
     printTable(table, name);
-    double const error_koeff = (table->f == my_f ? error_koeff_f : error_koeff_g)(table->xs.size);
+    double const error_coeff = (table->f == my_f ? error_coeff_f : error_coeff_g)(table->xs.size);
     char const func_char = table->f == my_f ? 'f' : 'g';
     double const step = (max_x - min_x) / numof_checkpoints;
     double curr_x = min_x;
@@ -174,7 +174,7 @@ void printReport(Table const *table, char const *name)
         assert(fabs(calcValue(&polynomial, x) - lagrange) < 1.e-6);
 
         double const error = fabs(y - lagrange);
-        double const error_upperbound = errorUpperbound(table, x, error_koeff);
+        double const error_upperbound = errorUpperbound(table, x, error_coeff);
         printf("%2zu | %+.9f | %+.9f | %+16.9f | %+16.9f | %+22.9f | %s\n"
                 , i, x, y, lagrange, error, error_upperbound, error <= error_upperbound ? "Yes" : "No");
         curr_x += step;
