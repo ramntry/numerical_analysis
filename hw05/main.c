@@ -9,6 +9,7 @@
 
 size_t const numof_my_xs = 5;
 size_t const numof_checkpoints = 20;
+size_t const numof_parts = 3;
 double pi;
 double min_x;
 double max_x;
@@ -199,7 +200,7 @@ Table createMyTable()
 
 Table createTable(double min_x, double max_x, size_t num_part)
 {
-    size_t const numof_parts = 3;
+    assert(num_part < numof_parts);
     double const part_size = (max_x - min_x) / numof_parts;
     double const step = part_size / numof_my_xs;
     Table table;
@@ -243,8 +244,8 @@ int main(int argc, char **argv)
     Table my_table = createMyTable();
     Table doubled_table = doubleTable(&my_table, min_x);
     Table left_table = createTable(min_x, max_x, 0);
-    Table middle_table = createTable(min_x, max_x, 1);
-    Table right_table = createTable(min_x, max_x, 2);
+    Table middle_table = createTable(min_x, max_x, numof_parts / 2);
+    Table right_table = createTable(min_x, max_x, numof_parts - 1);
 
     printReport(&my_table, "Initial table");
     printReport(&doubled_table, "Doubled table");
