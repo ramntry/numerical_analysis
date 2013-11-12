@@ -1,0 +1,5 @@
+for hw in hw*
+do
+  make -B -C $hw
+  make -B -C $hw debug
+done
