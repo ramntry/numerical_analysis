@@ -24,7 +24,7 @@ void printFiniteDiffTable(FiniteDiffTable const *table, FILE *fd)
 {
     for (size_t i = 0; i < table->size; ++i) {
         for (size_t j = 0; j < table->size - i; ++j) {
-            fprintf(fd, "%+.*lf  ", PRINT_NUMERIC_PRECISION, fdt_at(*table, i, j));
+            fprintf(fd, "%+.*Lf  ", PRINT_NUMERIC_PRECISION, fdt_at(*table, i, j));
         }
         putchar('\n');
     }
@@ -35,7 +35,7 @@ void prettyPrintFiniteDiffTable(FiniteDiffTable const *table, FILE *fd)
     for (size_t i = 0; i < 2*table->size - 1; ++i) {
         for (size_t j = 0; j < table->size; ++j) {
             if ((i + j) % 2 == 0 && j <= i && i < 2*table->size - j - 1) {
-                fprintf(fd, "%+.*lf  ", PRINT_NUMERIC_PRECISION, fdt_at(*table, (i - j)/2, j));
+                fprintf(fd, "%+.*Lf  ", PRINT_NUMERIC_PRECISION, fdt_at(*table, (i - j)/2, j));
             } else {
                 fprintf(fd, "          ");
             }
