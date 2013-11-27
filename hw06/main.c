@@ -69,32 +69,35 @@ double simpsonsRuleMaxError(size_t numSegments)
   return (width2*width2*width * max_d4f) / (2880.0*numSegments2*numSegments2);
 }
 
-double accurateByRunge(size_t numSegments)
+double accurateByRunge(Method method, size_t numSegments)
 {
-  return (16.0*simpsonsRule(f, a_lim, b_lim, numSegments) -
-               simpsonsRule(f, a_lim, b_lim, numSegments/2)) / 15.0;
+  double coeff = 4.0;
+  if (method == simpsonsRule)
+    coeff = 16.0;
+  return (coeff * method(f, a_lim, b_lim, numSegments) -
+                  method(f, a_lim, b_lim, numSegments / 2)) / (coeff - 1.0);
 }
 
 void reportForMethod(Method method, MethodMaxError maxError, double accurate, const char *name)
 {
   double const rectSmall = method(f, a_lim, b_lim, smallNumSegments);
   double const rectBig = method(f, a_lim, b_lim, bigNumSegments);
+  double const byRunge = accurateByRunge(method, bigNumSegments);
   printf("%-11s | %2zu | %11.9f | %11.9f | %11.9f\n",
       name, smallNumSegments, rectSmall, fabs(accurate - rectSmall), maxError(smallNumSegments));
   printf("            | %2zu | %11.9f | %11.9f | %11.9f\n",
       bigNumSegments, rectBig, fabs(accurate - rectBig), maxError(bigNumSegments));
+  printf("    (Runge) | %2zu | %11.9f | %11.9f | %11.9f\n",
+      bigNumSegments, byRunge, fabs(accurate - byRunge), NAN);
   printf("------------+----+-------------+-------------+------------\n");
 }
 
 int main()
 {
-  double const accurate = accurateByRunge(accurateNumSegments);
+  double const accurate = accurateByRunge(simpsonsRule, accurateNumSegments);
   printf("Method      | N  | S           | Error       | A\n");
   printf("============+====+=============+=============+============\n");
-  reportForMethod(rectangleMethod, rectangleMethodMaxError, accurate, "Rectange");
+  reportForMethod(rectangleMethod, rectangleMethodMaxError, accurate, "Rectangle");
   reportForMethod(trapezoidalRule, trapezoidalRuleMaxError, accurate, "Trapezoidal");
   reportForMethod(simpsonsRule, simpsonsRuleMaxError, accurate, "Simpson's");
-  double const runge = accurateByRunge(bigNumSegments);
-  printf("%-11s | %2zu | %11.9f | %11.9f | %11.9f\n",
-      "Runge", bigNumSegments, runge, fabs(accurate - runge), NAN);
 }
