@@ -243,7 +243,7 @@ void print_xs()
   initVector(&xs, numof_xs);
   for (size_t i = 0; i < numof_xs; ++i)
     append(&xs, get_x(i, h));
-  printf("x");
+  printf("x\n");
   printVector(&xs, stdout);
   printf("\n\n");
   disposeVector(&xs);
