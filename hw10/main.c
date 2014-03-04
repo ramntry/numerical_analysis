@@ -2,27 +2,25 @@
 #include <stdio.h>
 #include <math.h>
 
-#define SIZE 5
+#define SIZE 4
 #define DOUBLE_WIDTH 8
 
 // 27
 complex double matrix[SIZE][SIZE] = {
-  {  1,  3, -2,  0, -2 },
-  {  3,  4, -5,  1, -3 },
-  { -2, -5,  3, -2,  2 },
-  {  0,  1, -2,  5,  3 },
-  { -2, -3,  2,  3,  4 }
+  { 2.34,  0.91,  0.91, -0.5  },
+  { 0.91, -2.12,  0.91,  1.02 },
+  { 0.91,  0.91,  2.07,  1.02 },
+  {-0.5,   1.02,  1.02,  2.14 }
 };
 
 complex double decomposed[SIZE][SIZE];
 complex double control[SIZE][SIZE];
 
 complex double vector[SIZE] = {
-  0.5,
-  5.4,
-  5.0,
-  7.5,
-  3.3
+   5.7565,
+  -3.5570,
+   3.9305,
+   0.3590
 };
 
 complex double vector_y[SIZE];
@@ -50,7 +48,7 @@ void calc_control() {
 }
 
 void print_complex(complex double z) {
-  printf(" % -4.1f%+.2fi", creal(z), cimag(z));
+  printf(" % -7.4f%+.4fi", creal(z), cimag(z));
 }
 
 void print_matrix(complex double m[SIZE][SIZE]) {
@@ -125,4 +123,3 @@ int main() {
   print_vector(control_vector);
   return 0;
 }
-
