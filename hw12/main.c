@@ -132,6 +132,29 @@ void jacobi() {
   }
 }
 
+void jacobi2() {
+  double jacobi_matrix[SIZE][SIZE] = { { 0 } };
+  for (int i = 0; i < SIZE; ++i)
+    for (int j = 0; j < SIZE; ++j)
+      jacobi_matrix[i][j] = matrix[i][j];
+  for (int i = 1;;  ++i) {
+    double diags[SIZE];
+    for (int i = 0; i < SIZE; ++i)
+      diags[i] = jacobi_matrix[i][i];
+    jacobi_rotation(jacobi_matrix);
+    printf("\n%d:\n", i);
+    print_matrix(jacobi_matrix);
+    int done = 1;
+    for (int i = 0; i < SIZE; ++i)
+      if (fabs(diags[i] - jacobi_matrix[i][i]) > EPS) {
+        done = 0;
+        break;
+      }
+    if (done)
+      break;
+  }
+}
+
 int main() {
   printf("A = \n");
   print_matrix(matrix);
@@ -146,7 +169,7 @@ int main() {
   printf("\n");
 
   printf("\nJacobi:\n");
-  jacobi();
+  jacobi2();
 
   return 0;
 }
