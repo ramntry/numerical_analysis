@@ -4,8 +4,8 @@
 #include <math.h>
 
 #define SIZE 3
-#define DOUBLE_PREC 3
-#define EPS 1.e-4
+#define DOUBLE_PREC 6
+#define EPS 1.e-5
 
 void print_vector(double x[SIZE]) {
   for (int i = 0; i < SIZE; ++i)
@@ -63,6 +63,9 @@ double iteration(int *iter_counter) {
       for (int j = 0; j < SIZE; ++j)
         next[i] += matrix[i][j] * curr[j];
     }
+    printf("\n%d:\n", k);
+    print_vector(curr);
+    printf("eigenvalue = %.*f\n", DOUBLE_PREC, next[0] / curr[0]);
     int done = 1;
     for (int i = 0; i < SIZE; ++i)
       if (fabs(next[i] / curr[i] - curr[i] / prev[i]) > EPS) {
@@ -70,7 +73,7 @@ double iteration(int *iter_counter) {
         break;
       }
     if (done) {
-      printf("Iteration: eigenvector, corresponding to max by absolute value eigenvalue:\n");
+      printf("\nIteration: eigenvector, corresponding to max by absolute value eigenvalue:\n");
       print_vector(curr);
       *iter_counter = k;
       return next[0] / curr[0];
@@ -91,7 +94,7 @@ void jacobi_rotation(double m[SIZE][SIZE]) {
       }
   double const cur_ii = m[max_i][max_i];
   double const cur_jj = m[max_j][max_j];
-  double const theta = 0.5 * atan(2 * max_nondiag / (cur_ii - cur_jj));
+  double const theta = 0.5 * atan(2 * m[max_i][max_j] / (cur_ii - cur_jj));
   double const c = cos(theta);
   double const s = sin(theta);
   double row_i[SIZE];
@@ -110,6 +113,47 @@ void jacobi_rotation(double m[SIZE][SIZE]) {
   m[max_i][max_i] = new_ii;
   m[max_j][max_j] = new_jj;
   m[max_i][max_j] = m[max_j][max_i] = 0;
+}
+
+void jacobi_rotation2(double m[SIZE][SIZE]) {
+  double max_nondiag = 0.0;
+  int max_i = 0;
+  int max_j = 0;
+  for (int i = 0; i < SIZE; ++i)
+    for (int j = i + 1; j < SIZE; ++j)
+      if (fabs(m[i][j]) > max_nondiag) {
+        max_i = i;
+        max_j = j;
+        max_nondiag = fabs(m[i][j]);
+      }
+  double const cur_ii = m[max_i][max_i];
+  double const cur_jj = m[max_j][max_j];
+  double const theta = 0.5 * atan(2 * m[max_i][max_j] / (cur_ii - cur_jj));
+  double const c = cos(theta);
+  double const s = sin(theta);
+  double rotation_matrix[SIZE][SIZE];
+  for (int i = 0; i < SIZE; ++i)
+    for (int j = 0; j < SIZE; ++j)
+      rotation_matrix[i][j] = (i == j) ? 1 : 0;
+  rotation_matrix[max_i][max_i] =  c;
+  rotation_matrix[max_j][max_j] =  c;
+  rotation_matrix[max_i][max_j] = -s;
+  rotation_matrix[max_j][max_i] =  s;
+  printf("\nRotation matrix:\n");
+  print_matrix(rotation_matrix);
+  double new_matrix[SIZE][SIZE];
+  for (int i = 0; i < SIZE; ++i)
+    for (int j = 0; j < SIZE; ++j) {
+      new_matrix[i][j] = 0;
+      for (int k = 0; k < SIZE; ++k)
+        new_matrix[i][j] += m[i][k] * rotation_matrix[k][j];
+    }
+  for (int i = 0; i < SIZE; ++i)
+    for (int j = 0; j < SIZE; ++j) {
+      m[i][j] = 0;
+      for (int k = 0; k < SIZE; ++k)
+        m[i][j] += rotation_matrix[k][i] * new_matrix[k][j];
+    }
 }
 
 double jacobi_norm(double m[SIZE][SIZE]) {
@@ -141,7 +185,7 @@ void jacobi2() {
     double diags[SIZE];
     for (int i = 0; i < SIZE; ++i)
       diags[i] = jacobi_matrix[i][i];
-    jacobi_rotation(jacobi_matrix);
+    jacobi_rotation2(jacobi_matrix);
     printf("\n%d:\n", i);
     print_matrix(jacobi_matrix);
     int done = 1;
@@ -169,7 +213,7 @@ int main() {
   printf("\n");
 
   printf("\nJacobi:\n");
-  jacobi2();
+  jacobi();
 
   return 0;
 }
