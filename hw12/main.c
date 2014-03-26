@@ -102,7 +102,7 @@ void jacobi_rotation(double m[SIZE][SIZE]) {
   }
   double const new_ii = c*c*cur_ii + 2*c*s*max_nondiag + s*s*cur_jj;
   double const new_jj = s*s*cur_ii - 2*c*s*max_nondiag + c*c*cur_jj;
-  assert(fabs((c*c - s*s)*max_nondiag - c*s*(cur_ii - cur_jj))< EPS);
+  assert(fabs((c*c - s*s)*max_nondiag - c*s*(cur_ii - cur_jj)) < EPS);
   for (int k = 0; k < SIZE; ++k) {
     m[k][max_i] = m[max_i][k] = row_i[k];
     m[k][max_j] = m[max_j][k] = row_j[k];
