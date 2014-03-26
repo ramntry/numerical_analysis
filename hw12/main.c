@@ -40,7 +40,7 @@ double norm(double x[SIZE]) {
   return sqrt(acc);
 }
 
-void normalize_by_first(double x[3][SIZE], int num) {
+void normalize_by_first(double x[][SIZE], int num) {
   double const norm_coeff = 1 / norm(x[0]);
   for (int k = 0; k < num; ++k)
     for (int i = 0; i < SIZE; ++i)
